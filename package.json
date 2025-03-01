@@ -1,0 +1,40 @@
+{
+  "name": "printab",
+  "version": "0.0.1",
+  "description": "Usefull data analysis utility",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "jest",
+    "build": "tsc --project tsconfig.json",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourconst/printab.git"
+  },
+  "keywords": [
+    "table",
+    "polyfill",
+    "sort",
+    "text",
+    "align",
+    "depsfree",
+    "nodeps",
+    "printab"
+  ],
+  "author": "yourconst",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/yourconst/printab/issues"
+  },
+  "homepage": "https://github.com/yourconst/printab#readme",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.6",
+    "typescript": "^5.7.3"
+  }
+}
