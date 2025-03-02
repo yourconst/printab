@@ -37,11 +37,11 @@ export class Table<O extends Helpers.TRow, P extends keyof O = keyof O> {
         }
 
 
-        this.empty = Column.parseEmpty(options.empty);
+        this.empty = Common.parseEmpty(options.empty);
 
         this.columns = options.columns.map(c => new Column(this, c));
 
-        this.number = Column.parseNumberOptions(options.number);
+        this.number = Common.parseNumberOptions(options.number);
 
         this.border = {
             color: 'default',

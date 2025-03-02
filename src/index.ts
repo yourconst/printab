@@ -1,12 +1,12 @@
-import { Table, TTableOptions } from './Elements';
-import type * as Helpers from './helpers';
+import * as _Elements from './Elements';
+import * as _Helpers from './helpers';
 
-export function print<O extends Helpers.TRow>(
+export function printab<O extends _Helpers.TRow>(
     rows: O[],
-    options?: TTableOptions<O>,
+    options?: _Elements.TTableOptions<O>,
     target?: Console | HTMLElement | ((data: string) => any),
 ) {
-    const table = new Table(rows, options);
+    const table = new _Elements.Table(rows, options);
 
     if (!target || target === console) {
         console.log(table.buildConsole());
@@ -23,28 +23,28 @@ export function print<O extends Helpers.TRow>(
     }
 }
 
-export function build<O extends Helpers.TRow>(
-    type: 'console' | 'html',
-    rows: O[],
-    options?: TTableOptions<O>,
-) {
-    const table = new Table(rows, options);
+export { _Elements as Elements };
+export { _Helpers as Helpers };
 
-    if (type === 'console') {
-        return table.buildConsole();
+export namespace printab {
+    export import Elements = _Elements;
+    export import Helpers = _Helpers;
+
+    export type BuildType = 'console' | 'html';
+
+    export function build<O extends _Helpers.TRow>(
+        rows: O[],
+        options?: _Elements.TTableOptions<O>,
+        type: BuildType = 'console',
+    ) {
+        const table = new _Elements.Table(rows, options);
+    
+        if (type === 'console') {
+            return table.buildConsole();
+        }
+    
+        return table.buildHtml();
     }
-
-    return table.buildHtml();
 }
 
-type Extra = {
-    print?: typeof print;
-    build?: typeof build;
-}
-
-const dflt: typeof print & Extra = print;
-
-dflt.print = print;
-dflt.build = build;
-
-export default <typeof print & Required<Extra>> dflt;
+export default printab;

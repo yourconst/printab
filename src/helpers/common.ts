@@ -41,7 +41,7 @@ export function setStringMaxWidth(s: string, maxWidth: number) {
 export type Property = string | number | symbol;
 
 export type Order = 'asc' | 'desc';
-export interface OrderBy<T extends Property> {
+export type OrderBy<T extends Property> = T | {
     field: T;
     order?: Order;
 }
@@ -51,10 +51,16 @@ export function sortByOrder<O extends TRow>(array: O[], order: OrderBy<keyof O>[
         array = array.slice();
     }
 
-    const os = order.map(o => ({
-        f: o.field,
-        o: o.order === 'desc' ? -1 : 1,
-    }));
+    const os = order.map(o =>
+        typeof o !== 'object'
+            ? ({
+                f: o,
+                o: 1,
+            })
+            : ({
+                f: o.field,
+                o: o.order === 'desc' ? -1 : 1,
+            }));
 
     return array.sort((a, b) => {
         for (const o of os) {
@@ -62,12 +68,14 @@ export function sortByOrder<O extends TRow>(array: O[], order: OrderBy<keyof O>[
             const bv = b[o.f];
 
             let res = o.o;
+            
+            res *= av > bv ? 1 : av === bv ? 0 : -1;
 
-            if (typeof av === 'number') {
-                res *= av - bv;
-            } else {
-                res *= av > bv ? 1 : av === bv ? 0 : -1;
-            }
+            // if (typeof av === 'number') {
+            //     res *= av - bv;
+            // } else {
+            //     res *= av > bv ? 1 : av === bv ? 0 : -1;
+            // }
 
             if (res !== 0) {
                 return res;
@@ -78,10 +86,10 @@ export function sortByOrder<O extends TRow>(array: O[], order: OrderBy<keyof O>[
 }
 
 const numberRegExp = /-{0,1}[0-9]+(\.([0-9])*)*/g;
-export function getNumber(value: number | string) {
+export function getNumber(value: number | string): string | undefined {
     if (typeof value === 'number') {
         return value.toString();
     }
 
-    return <string> numberRegExp.exec(value)?.[0];
+    return value.match(numberRegExp)?.[0];
 }

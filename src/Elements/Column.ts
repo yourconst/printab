@@ -26,28 +26,6 @@ export type IColumnOptions<O extends Helpers.TRow, P extends keyof O = keyof O> 
 export type TColumnOptions<O extends Helpers.TRow, P extends keyof O = keyof O> = IColumnOptions<O, P> | P;
 
 export class Column<O extends Helpers.TRow, P extends keyof O = keyof O> {
-    static parseNumberOptions(o?: Common.INumberOptions, ref?: Common.INumberOptions): Helpers.RecursiveRequired<Common.INumberOptions> {
-        return {
-            decimals: <any> ref?.decimals ?? o?.decimals ?? 3,
-            multiplier: <any> ref?.multiplier ?? o?.multiplier ?? undefined,
-            resolutions: <any> ref?.resolutions ?? o?.resolutions ?? undefined,
-            ...ref,
-            ...o,
-        };
-    }
-
-    static parseEmpty(options?: Common.TEmptyOptions, ref?: Common.IEmptyOptions): Helpers.RecursiveRequired<Common.IEmptyOptions> {
-        return typeof options === 'object'
-            ? {
-                null: options.null ?? ref?.null ?? '',
-                undefined: options.undefined ?? ref?.undefined ?? '',
-            }
-            : {
-                null: options ?? ref?.null ?? '',
-                undefined: options ?? ref?.undefined ?? '',
-            };
-    }
-
     readonly field?: P;
     readonly transform?: TCellTransformer<O>;
     readonly header: Helpers.RecursiveRequired<IHeaderOptions>;
@@ -82,9 +60,9 @@ export class Column<O extends Helpers.TRow, P extends keyof O = keyof O> {
                 ? 'number' : 'left';
         this.valign = o.valign ?? 'middle';
         this.color = o.color ?? (this.isNumber ? 'yellow' : 'default');
-        this.number = Column.parseNumberOptions(o.number, this.table.number);
+        this.number = Common.parseNumberOptions(o.number, this.table.number);
 
-        this.empty = Column.parseEmpty(o.empty, this.table.empty);
+        this.empty = Common.parseEmpty(o.empty, this.table.empty);
 
         this._width = Helpers.Console.getWidth(this.header.name);
     }
@@ -96,14 +74,14 @@ export class Column<O extends Helpers.TRow, P extends keyof O = keyof O> {
     }
 
     getValue(o: O) {
-        return this.transform ? this.transform(o) : o[this.field];
+        return this.transform ? this.transform(o) : o[this.field!];
     }
 
     update(o: O) {
         const v = this.getValue(o);
 
-        let s: string = (typeof v === 'number' && typeof this.number.decimals === 'number')
-            ? (+v.toFixed(this.number.decimals)).toString()
+        let s: string = (this.isNumber && typeof v === 'number' && typeof this.number.decimals === 'number')
+            ? v.toString()
             : v === null
             ? this.empty.null
             : v === undefined
@@ -111,19 +89,18 @@ export class Column<O extends Helpers.TRow, P extends keyof O = keyof O> {
             : v.toString();
 
         if (this.isNumber) {
-            if (typeof this.number.decimals === 'number' || typeof this.number.multiplier === 'number') {
-                const num = Helpers.getNumber(s);
+            if (typeof this.number.decimals === 'number' || typeof this.number.multiplier === 'number' || this.number.resolutions) {
+                let num = Helpers.getNumber(s);
 
                 if (num) {
-                    const { decimals, multiplier = 1 } = this.number;
-                    s = s.replace(num, (+((+num) * multiplier).toFixed(decimals)).toString());
+                    s = s.replace(num, Common.applyNumberOptions(+num, this.number));
                 }
             }
 
             const parts = s.split('.');
-            if (typeof this.number.decimals === 'number') {
-                parts[1] = parts[1]?.slice(0, this.number.decimals);
-            }
+            // if (typeof this.number.decimals === 'number') {
+            //     parts[1] = parts[1]?.slice(0, this.number.decimals);
+            // }
             this._widthDecimals = Math.max(this._widthDecimals, Helpers.Console.getWidth(parts[1] || ''));
             this._width = Math.max(this._width, Helpers.Console.getWidth(parts[0]) + this._widthDecimals);
             this.cells.push(parts[1] ? parts.join('.') : parts[0]);
